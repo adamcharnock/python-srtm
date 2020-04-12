@@ -42,3 +42,32 @@ python
 >>> Srtm3HeightMapCollection().get_elevation_profile(40.123, -7.456, 40.129, -7.460)
 [626, 616, 585, 593, 577, 548, 528, 514]
 ```
+
+## Release process
+
+```
+# Update the setup.py
+dephell convert
+black setup.py
+
+# Ensure poetry.lock is up to date
+poetry lock
+
+export VERSION="VERSION HERE"
+
+# Version bump
+poetry version $VERSION
+
+
+# Commit
+git add .
+git commit -m "Releasing version $VERSION"
+
+# Tagging and branching
+git tag "v$VERSION"
+git branch "v$VERSION"
+git push origin \
+    refs/tags/"v$VERSION" \
+    refs/heads/"v$VERSION" \
+    master
+```
