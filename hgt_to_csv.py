@@ -8,13 +8,12 @@ import logging
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('tower_finder')
+logger = logging.getLogger("tower_finder")
 
 DATA_PATH = Path("/Volumes/General/srtm")
 DATA_FILES: Dict[str, Path] = {
-    p.name.split('.')[0]: p
-    for p
-    in chain(DATA_PATH.rglob("*.hgt.zip"), DATA_PATH.rglob("*.hgt"))
+    p.name.split(".")[0]: p
+    for p in chain(DATA_PATH.rglob("*.hgt.zip"), DATA_PATH.rglob("*.hgt"))
 }
 
 
@@ -22,8 +21,8 @@ def get_file_name(lat, long):
     filename_lat = int(lat)
     filename_long = int(long)
 
-    filename_ns = 'S' if filename_lat < 0 else 'N'
-    filename_ew = 'W' if filename_long < 0 else 'E'
+    filename_ns = "S" if filename_lat < 0 else "N"
+    filename_ew = "W" if filename_long < 0 else "E"
 
     return f"{filename_ns}{abs(filename_lat):0>2}{filename_ew}{abs(filename_long):0>3}"
 
@@ -35,13 +34,13 @@ def open_srtm(lat, long):
 
     logger.info(f"Opening {path}")
 
-    if path.suffix == '.zip':
+    if path.suffix == ".zip":
         with ZipFile(str(path)) as zip_file:
             assert zip_file.testzip() is None
-            with zip_file.open(zip_file.filelist[0].filename, mode='r') as f:
+            with zip_file.open(zip_file.filelist[0].filename, mode="r") as f:
                 yield f
     else:
-        with open(str(path), mode='rb') as f:
+        with open(str(path), mode="rb") as f:
             yield f
 
 
@@ -79,10 +78,10 @@ def get_sample(lat, long) -> Optional[int]:
     position = lat_long_to_file_position(lat, long)
 
     with open_srtm(lat, long) as f:
-        print('-->', position)
+        print("-->", position)
         f.seek(position * 2)  # go to the right spot,
         buf = f.read(2)  # read two bytes and convert them:
-        val, = struct.unpack('>h', buf)  # ">h" is a signed two byte integer
+        (val,) = struct.unpack(">h", buf)  # ">h" is a signed two byte integer
         if not val == -32768:  # the not-a-valid-sample value
             return val
         else:
@@ -110,14 +109,14 @@ def get_all():
                 continue
 
             for position in range(0, 1201 ** 2):
-                index = position*2
-                val, = struct.unpack('>h', data[index:index+2])
+                index = position * 2
+                (val,) = struct.unpack(">h", data[index : index + 2])
                 if not val == -32768:
                     lat, lng = position_to_lat_long(base_lat, base_long, position)
                     yield val, lat, lng
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # print(get_sample(lat=0.39550467, long=29.70016479))  # Random, should be 1002m
     # print(get_sample(lat=0.5149772, long=29.87594604))  # Random, should be 2553m (mountainside)
     # print(get_sample(lat=0.92006544, long=29.93774414))  # Random, should be 844m
@@ -127,14 +126,26 @@ if __name__ == '__main__':
 
     SF = 10 ** 5
     for height, lat, long in get_all():
-        print(','.join([str(height), str(round(lat * SF) / SF), str(round(long * SF) / SF)]))
+        print(
+            ",".join(
+                [str(height), str(round(lat * SF) / SF), str(round(long * SF) / SF)]
+            )
+        )
 
 
 def test_position_to_lat_long():
     import pytest
 
     assert lat_long_to_file_position(10.007, 20.005) == 1431597
-    assert pytest.approx(position_to_lat_long(base_lat=10, base_long=20, position=1434000), rel=0.0001) == (10.007, 20.005)
-    assert pytest.approx(position_to_lat_long(base_lat=-10, base_long=20, position=1434000), rel=0.0001) == (-10.007, 20.005)
-    assert pytest.approx(position_to_lat_long(base_lat=10, base_long=-20, position=1434000), rel=0.0001) == (10.007, -20.005)
-    assert pytest.approx(position_to_lat_long(base_lat=-10, base_long=-20, position=1434000), rel=0.0001) == (-10.007, -20.005)
+    assert pytest.approx(
+        position_to_lat_long(base_lat=10, base_long=20, position=1434000), rel=0.0001
+    ) == (10.007, 20.005)
+    assert pytest.approx(
+        position_to_lat_long(base_lat=-10, base_long=20, position=1434000), rel=0.0001
+    ) == (-10.007, 20.005)
+    assert pytest.approx(
+        position_to_lat_long(base_lat=10, base_long=-20, position=1434000), rel=0.0001
+    ) == (10.007, -20.005)
+    assert pytest.approx(
+        position_to_lat_long(base_lat=-10, base_long=-20, position=1434000), rel=0.0001
+    ) == (-10.007, -20.005)

@@ -16,15 +16,13 @@ class Square(NamedTuple):
     @property
     def min_corner(self):
         return Point(
-            lat=self.center.lat - self.size / 2,
-            long=self.center.long - self.size / 2,
+            lat=self.center.lat - self.size / 2, long=self.center.long - self.size / 2,
         )
 
     @property
     def max_corner(self):
         return Point(
-            lat=self.center.lat + self.size / 2,
-            long=self.center.long + self.size / 2,
+            lat=self.center.lat + self.size / 2, long=self.center.long + self.size / 2,
         )
 
     def contains(self, point: Point):
@@ -55,7 +53,9 @@ class Line(NamedTuple):
     @property
     def equation(self) -> Tuple[Optional[float], Optional[float]]:
         try:
-            gradient = (self.end.lat - self.start.lat) / (self.end.long - self.start.long)
+            gradient = (self.end.lat - self.start.lat) / (
+                self.end.long - self.start.long
+            )
         except ZeroDivisionError:
             return None, None
 
@@ -84,13 +84,14 @@ def get_squares(start: Point, end: Point, square_size: float = SQUARE_SIZE):
     while next_point < end:
         next_point = Point(
             long=next_point.long + square_size,
-            lat=line.get_lat(long=next_point.lat + square_size)
+            lat=line.get_lat(long=next_point.lat + square_size),
         )
         squares.append(Square.nearest_to(next_point, square_size))
 
     return squares
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pass
 
 
@@ -111,22 +112,14 @@ def test_line():
 
 
 def test_get_squares_diagonal():
-    assert get_squares(
-        start=Point(0, 0),
-        end=Point(1, 1),
-        square_size=1,
-    ) == [
+    assert get_squares(start=Point(0, 0), end=Point(1, 1), square_size=1,) == [
         Square(center=Point(lat=0.0, long=0.0), size=1),
         Square(center=Point(lat=1.0, long=1.0), size=1),
     ]
 
 
 def test_get_squares_vertical():
-    assert get_squares(
-        start=Point(0, 0),
-        end=Point(0, 1),
-        square_size=1,
-    ) == [
+    assert get_squares(start=Point(0, 0), end=Point(0, 1), square_size=1,) == [
         Square(center=Point(lat=0.0, long=0.0), size=1),
         Square(center=Point(lat=0.0, long=1.0), size=1),
     ]
@@ -134,11 +127,7 @@ def test_get_squares_vertical():
 
 def test_get_squares_horizontal():
     # TODO: This is where it breaks down because we assume the line isn't flat
-    assert get_squares(
-        start=Point(0, 0),
-        end=Point(1, 0),
-        square_size=1,
-    ) == [
+    assert get_squares(start=Point(0, 0), end=Point(1, 0), square_size=1,) == [
         Square(center=Point(lat=0.0, long=0.0), size=1),
         Square(center=Point(lat=1.0, long=0.0), size=1),
     ]

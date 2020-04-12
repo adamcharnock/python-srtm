@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import NamedTuple, Dict, Tuple, Generator
 from zipfile import ZipFile
 
-HGT_DIR = Path(os.environ['SRTM_DIR'])
+HGT_DIR = Path(os.environ["SRTM_DIR"])
 _HGT_SUBDIRS = (
     "Eurasia",
     "North_America",
@@ -22,7 +22,9 @@ def get_hgt_path(hgt_name: str):
         hgt_path = HGT_DIR / sub_dir / f"{hgt_name}.hgt.zip"
         if hgt_path.exists():
             return hgt_path
-    assert False, f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates?"
+    assert (
+        False
+    ), f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates?"
 
 
 class RasterBaseCoordinates(NamedTuple):
@@ -46,12 +48,12 @@ class RasterBaseCoordinates(NamedTuple):
         hgt_name = hgt_name.upper()
         error = f"Invalid hgt name ({hgt_name}), expected format (N|S)00(E|W)000"
         assert len(hgt_name) == 7, error
-        assert hgt_name[0] in ('N', 'S'), error
-        assert hgt_name[3] in ('E', 'W'), error
+        assert hgt_name[0] in ("N", "S"), error
+        assert hgt_name[3] in ("E", "W"), error
         try:
-            is_north = hgt_name[0] == 'N'
+            is_north = hgt_name[0] == "N"
             latitude = int(hgt_name[1:3])
-            is_east = hgt_name[3] == 'E'
+            is_east = hgt_name[3] == "E"
             longitude = int(hgt_name[4:7])
         except ValueError:
             assert False, error
@@ -61,16 +63,11 @@ class RasterBaseCoordinates(NamedTuple):
         if not is_east:
             longitude *= -1
 
-        return cls(
-            latitude=latitude,
-            longitude=longitude
-        )
+        return cls(latitude=latitude, longitude=longitude)
 
     @classmethod
     def from_hgt_path(cls, path: Path):
-        return cls.from_hgt_name(
-            hgt_name=path.name.split('.')[0]
-        )
+        return cls.from_hgt_name(hgt_name=path.name.split(".")[0])
 
     @property
     def hgt_name(self):
@@ -95,26 +92,27 @@ class HeightMap:
 
     def __init__(self, path: Path, base_coordinates: RasterBaseCoordinates = None):
         self.path = path
-        self.base_coordinates = base_coordinates or RasterBaseCoordinates.from_hgt_path(path)
+        self.base_coordinates = base_coordinates or RasterBaseCoordinates.from_hgt_path(
+            path
+        )
 
         # We subtract one as each row overlaps the neighbouring raster by 1 pixel
         self.pixel_width = 1 / (self.values_per_row - 1)
-
 
     @classmethod
     def from_base_coordinates(cls, base_coordinates: RasterBaseCoordinates):
         return cls(
             path=get_hgt_path(base_coordinates.hgt_name),
-            base_coordinates=base_coordinates
+            base_coordinates=base_coordinates,
         )
 
     def ensure_loaded(self, force=False):
         if not force and self.raster is not None:
             return
 
-        if '.zip' in self.path.suffixes:
+        if ".zip" in self.path.suffixes:
             zipped_files = ZipFile(self.path).namelist()
-            zipped_files = [name for name in zipped_files if '.hgt' in name]
+            zipped_files = [name for name in zipped_files if ".hgt" in name]
             assert len(zipped_files) == 1, (
                 f"ZIP at {self.path} contains the wrong number of hgt files "
                 f"({len(zipped_files)}!=1). Contains {zipped_files}"
@@ -138,14 +136,20 @@ class HeightMap:
         pixel_number -= 1
 
         byte_number = pixel_number * 2
-        return int.from_bytes(self.raster[byte_number:byte_number+2], byteorder="big")
+        return int.from_bytes(
+            self.raster[byte_number : byte_number + 2], byteorder="big"
+        )
 
-    def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float) -> int:
+    def get_height_for_latitude_and_longitude(
+        self, latitude: float, longitude: float
+    ) -> int:
         """Get the height at the given lat/lng"""
         x, y = self._latitude_and_longitude_to_coordinates(latitude, longitude)
         return self.get_height(x, y)
 
-    def _latitude_and_longitude_to_coordinates(self, latitude: float, longitude: float) -> Tuple[int, int]:
+    def _latitude_and_longitude_to_coordinates(
+        self, latitude: float, longitude: float
+    ) -> Tuple[int, int]:
         origin_latitude = self.base_coordinates.latitude + 1
         origin_longitude = self.base_coordinates.longitude
         latitude_offset = origin_latitude - latitude
@@ -178,10 +182,14 @@ class HeightMapCollection:
     def build_file_index(self):
         self.height_maps = {}
         for hgt_path in HGT_DIR.glob("**/*.hgt*"):
-            hgt_name = hgt_path.name.split('.')[0]
-            self.height_maps[RasterBaseCoordinates.from_hgt_name(hgt_name)] = HeightMap(path=hgt_path)
+            hgt_name = hgt_path.name.split(".")[0]
+            self.height_maps[RasterBaseCoordinates.from_hgt_name(hgt_name)] = HeightMap(
+                path=hgt_path
+            )
 
-    def get_height_map_for_latitude_and_longitude(self, latitude: float, longitude: float) -> HeightMap:
+    def get_height_map_for_latitude_and_longitude(
+        self, latitude: float, longitude: float
+    ) -> HeightMap:
         base = RasterBaseCoordinates.from_float(latitude, longitude)
         try:
             return self.height_maps[base]
@@ -191,7 +199,9 @@ class HeightMapCollection:
                 f"build_file_index() on your heightmap collection?"
             )
 
-    def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float) -> int:
+    def get_height_for_latitude_and_longitude(
+        self, latitude: float, longitude: float
+    ) -> int:
         height_map = self.get_height_map_for_latitude_and_longitude(latitude, longitude)
         return height_map.get_height_for_latitude_and_longitude(latitude, longitude)
 
@@ -203,21 +213,31 @@ class HeightMapCollection:
         max_longitude = max(corner1.longitude, corner2.longitude)
 
         for height_map in self.height_maps.values():
-            ok_latitude = min_latitude <= height_map.base_coordinates.latitude <= max_latitude
-            ok_longitude = min_longitude <= height_map.base_coordinates.longitude <= max_longitude
+            ok_latitude = (
+                min_latitude <= height_map.base_coordinates.latitude <= max_latitude
+            )
+            ok_longitude = (
+                min_longitude <= height_map.base_coordinates.longitude <= max_longitude
+            )
             if ok_latitude and ok_longitude:
                 height_map.ensure_loaded()
 
-    def get_elevation_profile(self, start_latitude: float, start_longitude: float, end_latitude: float, end_longitude: float):
+    def get_elevation_profile(
+        self,
+        start_latitude: float,
+        start_longitude: float,
+        end_latitude: float,
+        end_longitude: float,
+    ):
         # y = mx + c
         pass
 
 
-
-
-def points_on_line(x1: float, y1: float, x2: float, y2: float) -> Generator[Tuple[float, float], None, None]:
+def points_on_line(
+    x1: float, y1: float, x2: float, y2: float
+) -> Generator[Tuple[float, float], None, None]:
     points = []
-    issteep = abs(y2-y1) > abs(x2-x1)
+    issteep = abs(y2 - y1) > abs(x2 - x1)
     if issteep:
         x1, y1 = y1, x1
         x2, y2 = y2, x2
@@ -227,7 +247,7 @@ def points_on_line(x1: float, y1: float, x2: float, y2: float) -> Generator[Tupl
         y1, y2 = y2, y1
         rev = True
     deltax = x2 - x1
-    deltay = abs(y2-y1)
+    deltay = abs(y2 - y1)
     error = int(deltax / 2)
     y = y1
     ystep = None
@@ -249,5 +269,3 @@ def points_on_line(x1: float, y1: float, x2: float, y2: float) -> Generator[Tupl
         if error < 0:
             y += ystep
             error += deltax
-
-
