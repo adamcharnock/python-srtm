@@ -12,7 +12,7 @@ def test_srtm3_height_map_collection_get_height_for_latitude_and_longitude():
     collection = Srtm3HeightMapCollection()
     collection.build_file_index()
     assert (
-        collection.get_height_for_latitude_and_longitude(latitude=40, longitude=-7)
+        collection.get_altitude(latitude=40, longitude=-7)
         == 390
     )
 

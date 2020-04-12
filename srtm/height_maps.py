@@ -59,7 +59,7 @@ class HeightMap:
             f"Expected {expected_bytes}, found {len(self.raster)}"
         )
 
-    def get_height(self, x, y) -> int:
+    def get_altitude_for_pixel(self, x, y) -> int:
         """Get the height at the given pixel
 
         Will trigger loading of data
@@ -75,12 +75,12 @@ class HeightMap:
             self.raster[byte_number : byte_number + 2], byteorder="big"
         )
 
-    def get_height_for_latitude_and_longitude(
+    def get_altitude_for_latitude_and_longitude(
         self, latitude: float, longitude: float
     ) -> int:
         """Get the height at the given lat/lng"""
         x, y = self._latitude_and_longitude_to_coordinates(latitude, longitude)
-        return self.get_height(x, y)
+        return self.get_altitude_for_pixel(x, y)
 
     def _latitude_and_longitude_to_coordinates(
         self, latitude: float, longitude: float

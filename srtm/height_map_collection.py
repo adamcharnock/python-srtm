@@ -50,12 +50,12 @@ class HeightMapCollection:
                 f"build_file_index() on your heightmap collection?"
             )
 
-    def get_height_for_latitude_and_longitude(
+    def get_altitude(
         self, latitude: float, longitude: float
     ) -> int:
         """Get the height of the given latitude and longitude"""
         height_map = self.get_height_map_for_latitude_and_longitude(latitude, longitude)
-        return height_map.get_height_for_latitude_and_longitude(latitude, longitude)
+        return height_map.get_altitude_for_latitude_and_longitude(latitude, longitude)
 
     def load_area(self, corner1: RasterBaseCoordinates, corner2: RasterBaseCoordinates):
         """Pre-load a specific area of height maps"""
@@ -100,7 +100,7 @@ class HeightMapCollection:
 
         elevations = []
         for latitude, longitude in converted_points:
-            elevations.append(self.get_height_for_latitude_and_longitude(
+            elevations.append(self.get_altitude(
                 latitude, longitude
             ))
         return elevations

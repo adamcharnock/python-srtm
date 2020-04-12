@@ -4,14 +4,14 @@ from srtm.height_maps import Srtm3HeightMap
 from srtm.utilities import get_srtm3_file_path
 
 
-def test_get_value():
+def test_get_altitude_for_pixed():
     height_map = Srtm3HeightMap(path=get_srtm3_file_path("N40W008"))
     # Values taken from raster parsed by postgis, loaded with raster2pgsql
-    assert height_map.get_height(x=1, y=1) == 1130
-    assert height_map.get_height(x=1, y=2) == 1137
-    assert height_map.get_height(x=1201, y=1) == 317
-    assert height_map.get_height(x=1, y=1201) == 620
-    assert height_map.get_height(x=1201, y=1201) == 390
+    assert height_map.get_altitude_for_pixel(x=1, y=1) == 1130
+    assert height_map.get_altitude_for_pixel(x=1, y=2) == 1137
+    assert height_map.get_altitude_for_pixel(x=1201, y=1) == 317
+    assert height_map.get_altitude_for_pixel(x=1, y=1201) == 620
+    assert height_map.get_altitude_for_pixel(x=1201, y=1201) == 390
 
 
 def test_latitude_and_longitude_to_coordinates_corner1():
@@ -58,9 +58,9 @@ def test_latitude_and_longitude_to_coordinates_sw():
     ) == (123, 456)
 
 
-def get_height_for_latitude_and_longitude():
-    height_map = Srtm3HeightMap.from_file(path=get_srtm3_file_path("N40W008"))
+def test_get_altitude():
+    height_map = Srtm3HeightMap(path=get_srtm3_file_path("N40W008"))
     assert (
-        height_map.get_height_for_latitude_and_longitude(latitude=40, longitude=-7)
+        height_map.get_altitude_for_latitude_and_longitude(latitude=40, longitude=-7)
         == 390
     )

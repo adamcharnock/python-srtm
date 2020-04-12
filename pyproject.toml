@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "tower-finder"
+name = "python-srtm"
 version = "0.1.0"
 description = ""
 authors = ["Adam Charnock <adam@adamcharnock.com>"]
