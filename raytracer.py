@@ -1,5 +1,4 @@
 # Attempt 2
-import math
 import os
 from pathlib import Path
 from typing import NamedTuple, Dict, Tuple, Generator, List
@@ -28,6 +27,10 @@ def get_hgt_path(hgt_name: str):
 
 
 class RasterBaseCoordinates(NamedTuple):
+    """Base coordinates for a SRTM HGT raster file
+
+    HGT files are named based on the coordinate of their lower-left corner
+    """
     latitude: int
     longitude: int
 
@@ -45,6 +48,7 @@ class RasterBaseCoordinates(NamedTuple):
 
     @classmethod
     def from_hgt_name(cls, hgt_name: str):
+        """Create an instance from a HGT name, eg "N38W006" """
         hgt_name = hgt_name.upper()
         error = f"Invalid hgt name ({hgt_name}), expected format (N|S)00(E|W)000"
         assert len(hgt_name) == 7, error
@@ -67,10 +71,12 @@ class RasterBaseCoordinates(NamedTuple):
 
     @classmethod
     def from_hgt_path(cls, path: Path):
+        """Create an instance from a path to a HGT file"""
         return cls.from_hgt_name(hgt_name=path.name.split(".")[0])
 
     @property
     def hgt_name(self):
+        """Get the expected HGT file name for these base coordinates (without file extension)"""
         if self.latitude >= 0:
             latitude = f"N{self.latitude:0>2}"
         else:
@@ -85,6 +91,10 @@ class RasterBaseCoordinates(NamedTuple):
 
 
 class HeightMap:
+    """Provides access to a single SRTM HGT file
+
+    Data will be lazy-loaded on first access
+    """
     raster: bytes = None
     base_coordinates: RasterBaseCoordinates
     expected_values = 1442401
@@ -107,6 +117,7 @@ class HeightMap:
         )
 
     def ensure_loaded(self, force=False):
+        """Ensure the file has been loaded from disk"""
         if not force and self.raster is not None:
             return
 
@@ -124,11 +135,15 @@ class HeightMap:
         self.validate()
 
     def validate(self):
+        """Perform sanity checks"""
         expected_bytes = self.expected_values * 2
         assert len(self.raster) == expected_bytes
 
     def get_height(self, x, y) -> int:
-        """Get the height at the given pixel"""
+        """Get the height at the given pixel
+
+        Will trigger loading of data
+        """
         self.ensure_loaded()
         # Get the 1-indexed pixel number
         pixel_number = x + (y - 1) * self.values_per_row
@@ -150,6 +165,7 @@ class HeightMap:
     def _latitude_and_longitude_to_coordinates(
         self, latitude: float, longitude: float
     ) -> Tuple[int, int]:
+        """Convert the given lat/long into x/y coordinates for this SRTM data"""
         origin_latitude = self.base_coordinates.latitude + 1
         origin_longitude = self.base_coordinates.longitude
         latitude_offset = origin_latitude - latitude
@@ -174,12 +190,23 @@ class HeightMap:
 
 
 class HeightMapCollection:
+    """ Provides access to data across all SRTM files
+
+    This will lazy load data as needed
+    """
     height_maps: Dict[RasterBaseCoordinates, HeightMap]
 
-    def __init__(self):
+    def __init__(self, auto_build_index=True):
         self.height_maps = {}
+        if auto_build_index:
+            self.build_file_index()
 
     def build_file_index(self):
+        """Load an index of all available files
+
+        This reads file names, but does not load the contained data.
+        This is lazy-loaded on demand
+        """
         self.height_maps = {}
         for hgt_path in HGT_DIR.glob("**/*.hgt*"):
             hgt_name = hgt_path.name.split(".")[0]
@@ -190,6 +217,7 @@ class HeightMapCollection:
     def get_height_map_for_latitude_and_longitude(
         self, latitude: float, longitude: float
     ) -> HeightMap:
+        """Get the HeightMap for the given latitude and longitude"""
         base = RasterBaseCoordinates.from_float(latitude, longitude)
         try:
             return self.height_maps[base]
@@ -202,6 +230,7 @@ class HeightMapCollection:
     def get_height_for_latitude_and_longitude(
         self, latitude: float, longitude: float
     ) -> int:
+        """Get the height of the given latitude and longitude"""
         height_map = self.get_height_map_for_latitude_and_longitude(latitude, longitude)
         return height_map.get_height_for_latitude_and_longitude(latitude, longitude)
 
@@ -229,6 +258,7 @@ class HeightMapCollection:
         end_latitude: float,
         end_longitude: float,
     ):
+        """Get the elevation profile between the two points given"""
         # TODO: Remove magic number to setting
         def to_int(lat_lng: float) -> int:
             return round(lat_lng * 1200)

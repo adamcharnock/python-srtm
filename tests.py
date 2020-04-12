@@ -155,7 +155,6 @@ def test_height_map_collection_load_area():
     )
     loaded_height_maps = [hm for hm in collection.height_maps.values() if hm.raster]
     assert len(loaded_height_maps) == 9
-    breakpoint()
 
 
 def test_height_map_collection_get_elevation_profile():
