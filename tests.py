@@ -1,4 +1,5 @@
 import os
+import timeit
 from pathlib import Path
 
 import pytest
@@ -157,8 +158,25 @@ def test_height_map_collection_load_area():
     breakpoint()
 
 
+def test_height_map_collection_get_elevation_profile():
+    collection = HeightMapCollection()
+    collection.build_file_index()
+    profile = collection.get_elevation_profile(
+        start_latitude=40.103284,
+        start_longitude=-7.453766,
+        end_latitude=40.073772,
+        end_longitude=-7.432998,
+    )
+    breakpoint()
+    assert profile[0] == 566
+    assert profile[-1] == 424
+    assert len(profile) == 36
+
+
 # points_on_line()
 
 
 def test_points_on_line():
-    assert points_on_line(0, 0, 10, 10) == 1
+    assert list(points_on_line(0, 0, 2, 2)) == [(0, 0), (1, 1), (2, 2)]
+    assert list(points_on_line(2, 2, 0, 0)) == [(2, 2), (1, 1), (0, 0)]
+    assert list(points_on_line(0, 0, 0, 0)) == [(0, 0)]

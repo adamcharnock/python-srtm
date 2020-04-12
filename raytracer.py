@@ -2,7 +2,7 @@
 import math
 import os
 from pathlib import Path
-from typing import NamedTuple, Dict, Tuple, Generator
+from typing import NamedTuple, Dict, Tuple, Generator, List
 from zipfile import ZipFile
 
 HGT_DIR = Path(os.environ["SRTM_DIR"])
@@ -229,15 +229,35 @@ class HeightMapCollection:
         end_latitude: float,
         end_longitude: float,
     ):
-        # y = mx + c
-        pass
+        # TODO: Remove magic number to setting
+        def to_int(lat_lng: float) -> int:
+            return round(lat_lng * 1200)
+
+        def to_float(lat_lng_int: int) -> float:
+            return lat_lng_int / 1200
+
+        points = points_on_line(
+            x1=to_int(start_latitude),
+            y1=to_int(start_longitude),
+            x2=to_int(end_latitude),
+            y2=to_int(end_longitude),
+        )
+        converted_points = [(to_float(x), to_float(y)) for x, y in points]
+
+        elevations = []
+        for latitude, longitude in converted_points:
+            elevations.append(self.get_height_for_latitude_and_longitude(
+                latitude, longitude
+            ))
+        return elevations
 
 
 def points_on_line(
-    x1: float, y1: float, x2: float, y2: float
-) -> Generator[Tuple[float, float], None, None]:
+    x1: int, y1: int, x2: int, y2: int
+) -> List[Tuple[int, int]]:
+    # Credit: https://stackoverflow.com/questions/25837544
     points = []
-    issteep = abs(y2 - y1) > abs(x2 - x1)
+    issteep = abs(y2-y1) > abs(x2-x1)
     if issteep:
         x1, y1 = y1, x1
         x2, y2 = y2, x2
@@ -247,7 +267,7 @@ def points_on_line(
         y1, y2 = y2, y1
         rev = True
     deltax = x2 - x1
-    deltay = abs(y2 - y1)
+    deltay = abs(y2-y1)
     error = int(deltax / 2)
     y = y1
     ystep = None
@@ -255,17 +275,17 @@ def points_on_line(
         ystep = 1
     else:
         ystep = -1
-
-    x_range = range(x1, x2 + 1)
-    if rev:
-        x_range = reversed(x_range)
-
-    for x in x_range:
+    for x in range(x1, x2 + 1):
         if issteep:
-            yield y, x
+            points.append((y, x))
         else:
-            yield x, y
+            points.append((x, y))
         error -= deltay
         if error < 0:
             y += ystep
             error += deltax
+    # Reverse the list if the coordinates were reversed
+    if rev:
+        points.reverse()
+    return points
+
