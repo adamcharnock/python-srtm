@@ -97,8 +97,7 @@ def apply_curvature(heights: List[Tuple[float, float, int]]):
 
     The points given should approximate to a straight line.
 
-    Data is a list of tuples, where each tuple
-    is lat, long, height.
+    Data is a list of tuples, where each tuple is lat, long, height.
 
     Data is returned in the same form
     """
@@ -117,12 +116,24 @@ def apply_curvature(heights: List[Tuple[float, float, int]]):
         start_lat, start_long, _ = left_heights[-1]
     height_deltas = []
 
+    # We we imagine we are walking, and rather then follow the curvature of the
+    # earth, we walk out straight on an imaginary plank, seeing the earth slowly
+    # fall away below us (because, y'know, it's curved).
+    # We then imagine a right angled triangle. The adjacent is the line from
+    # our starting position to the center of the earth. The opposite side
+    # is the distance we have walked, and the hypotenuse is the distance
+    # from our current position to the center of the earth.
+    # Given we're now above the earth on our imaginary plank, the hypotenuse
+    # should be greater than the earth's radius by however high up we are.
+    # If we therefore take away the earths radius, we'll get our altitude.
     for lat, long, _ in heights:
         distance = haversine(start_lat, start_long, lat, long)
         distance_in_radians = distance / METERS_PER_RADIAN
         earth_drop = EARTH_RADIUS/math.cos(distance_in_radians) - EARTH_RADIUS
         height_deltas.append(earth_drop)
 
+    # Now we have all our altitudes, subtract each one from the heights we were given,
+    # thereby reducing all the heights to account for the curvature of the earth.
     adjusted = []
     for (latitude, longitude, height), height_delta in zip(heights, height_deltas):
         adjusted.append((latitude, longitude, height - height_delta))
