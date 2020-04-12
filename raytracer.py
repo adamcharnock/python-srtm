@@ -195,3 +195,14 @@ class HeightMapCollection:
         height_map = self.get_height_map_for_latitude_and_longitude(latitude, longitude)
         return height_map.get_height_for_latitude_and_longitude(latitude, longitude)
 
+    def load_area(self, corner1: RasterBaseCoordinates, corner2: RasterBaseCoordinates):
+        min_latitude = min(corner1.latitude, corner2.latitude)
+        max_latitude = max(corner1.latitude, corner2.latitude)
+        min_longitude = min(corner1.longitude, corner2.longitude)
+        max_longitude = max(corner1.longitude, corner2.longitude)
+
+        for height_map in self.height_maps.values():
+            ok_latitude = min_latitude <= height_map.base_coordinates.latitude <= max_latitude
+            ok_longitude = min_longitude <= height_map.base_coordinates.longitude <= max_longitude
+            if ok_latitude and ok_longitude:
+                height_map.ensure_loaded()
