@@ -66,6 +66,12 @@ class RasterBaseCoordinates(NamedTuple):
             longitude=longitude
         )
 
+    @classmethod
+    def from_hgt_path(cls, path: Path):
+        return cls.from_hgt_name(
+            hgt_name=path.name.split('.')[0]
+        )
+
     @property
     def hgt_name(self):
         if self.latitude >= 0:
@@ -82,50 +88,50 @@ class RasterBaseCoordinates(NamedTuple):
 
 
 class HeightMap:
-    raster: bytes
+    raster: bytes = None
     base_coordinates: RasterBaseCoordinates
     expected_values = 1442401
     values_per_row = 1201
 
-    def __init__(self, raster, base_coordinates):
-        self.raster = raster
-        self.base_coordinates = base_coordinates
-        # Subtract one as each row overlaps the neighbouring raster by 1 pixel
+    def __init__(self, path: Path, base_coordinates: RasterBaseCoordinates = None):
+        self.path = path
+        self.base_coordinates = base_coordinates or RasterBaseCoordinates.from_hgt_path(path)
+
+        # We subtract one as each row overlaps the neighbouring raster by 1 pixel
         self.pixel_width = 1 / (self.values_per_row - 1)
 
-    @classmethod
-    def from_file(cls, path: Path):
-        hgt_name = path.name.split('.')[0]
-
-        if '.zip' in path.suffixes:
-            zipped_files = ZipFile(path).namelist()
-            zipped_files = [name for name in zipped_files if '.hgt' in name]
-            assert len(zipped_files) == 1, (
-                f"ZIP at {path} contains the wrong number of hgt files "
-                f"({len(zipped_files)}!=1). Contains {zipped_files}"
-            )
-            contents = ZipFile(path).read(zipped_files[0])
-        else:
-            contents = path.read_bytes()
-
-        height_map = cls(
-            raster=contents,
-            base_coordinates=RasterBaseCoordinates.from_hgt_name(hgt_name)
-        )
-        height_map.validate()
-        return height_map
 
     @classmethod
     def from_base_coordinates(cls, base_coordinates: RasterBaseCoordinates):
-        return cls.from_file(
-            path=get_hgt_path(base_coordinates.hgt_name)
+        return cls(
+            path=get_hgt_path(base_coordinates.hgt_name),
+            base_coordinates=base_coordinates
         )
+
+    def ensure_loaded(self, force=False):
+        if not force and self.raster is not None:
+            return
+
+        if '.zip' in self.path.suffixes:
+            zipped_files = ZipFile(self.path).namelist()
+            zipped_files = [name for name in zipped_files if '.hgt' in name]
+            assert len(zipped_files) == 1, (
+                f"ZIP at {self.path} contains the wrong number of hgt files "
+                f"({len(zipped_files)}!=1). Contains {zipped_files}"
+            )
+            self.raster = ZipFile(self.path).read(zipped_files[0])
+        else:
+            self.raster = self.path.read_bytes()
+
+        self.validate()
 
     def validate(self):
         expected_bytes = self.expected_values * 2
         assert len(self.raster) == expected_bytes
 
-    def get_height(self, x, y):
+    def get_height(self, x, y) -> int:
+        """Get the height at the given pixel"""
+        self.ensure_loaded()
         # Get the 1-indexed pixel number
         pixel_number = x + (y - 1) * self.values_per_row
         # Convert it ro be 0-indexed
@@ -134,7 +140,8 @@ class HeightMap:
         byte_number = pixel_number * 2
         return int.from_bytes(self.raster[byte_number:byte_number+2], byteorder="big")
 
-    def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float):
+    def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float) -> int:
+        """Get the height at the given lat/lng"""
         x, y = self._latitude_and_longitude_to_coordinates(latitude, longitude)
         return self.get_height(x, y)
 
@@ -145,9 +152,15 @@ class HeightMap:
         longitude_offset = longitude - origin_longitude
 
         if latitude_offset > 1 or latitude_offset < 0:
-            raise ValueError(f"Latitude {latitude} with offset {latitude_offset} is not within this heightmap of base coordinates {base}")
+            raise ValueError(
+                f"Latitude {latitude} with offset {latitude_offset} is not within "
+                f"this heightmap of base coordinates {self.base_coordinates}"
+            )
         if longitude_offset > 1 or longitude_offset < 0:
-            raise ValueError(f"Longitude {longitude} with offset {longitude_offset} is not within this heightmap of base coordinates {base}")
+            raise ValueError(
+                f"Longitude {longitude} with offset {longitude_offset} is not within "
+                f"this heightmap of base coordinates {self.base_coordinates}"
+            )
 
         # Add one because pixels are 1-indexed
         x = round(longitude_offset / self.pixel_width) + 1
@@ -156,11 +169,29 @@ class HeightMap:
         return x, y
 
 
-
-
 class HeightMapCollection:
-    rasters: Dict[RasterBaseCoordinates, bytes]
+    height_maps: Dict[RasterBaseCoordinates, HeightMap]
 
-    def load(self):
-        pass
+    def __init__(self):
+        self.height_maps = {}
+
+    def build_file_index(self):
+        self.height_maps = {}
+        for hgt_path in HGT_DIR.glob("**/*.hgt*"):
+            hgt_name = hgt_path.name.split('.')[0]
+            self.height_maps[RasterBaseCoordinates.from_hgt_name(hgt_name)] = HeightMap(path=hgt_path)
+
+    def get_height_map_for_latitude_and_longitude(self, latitude: float, longitude: float) -> HeightMap:
+        base = RasterBaseCoordinates.from_float(latitude, longitude)
+        try:
+            return self.height_maps[base]
+        except KeyError:
+            raise Exception(
+                f"Height map for {base} not found. Have you called "
+                f"build_file_index() on your heightmap collection?"
+            )
+
+    def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float) -> int:
+        height_map = self.get_height_map_for_latitude_and_longitude(latitude, longitude)
+        return height_map.get_height_for_latitude_and_longitude(latitude, longitude)
 
