@@ -41,9 +41,17 @@ def points_on_line(
     return points
 
 
-def get_file_path(hgt_name: str):
+def get_srtm1_file_path(hgt_name: str):
+    paths = SRTM1_DIR.glob(f'**/{hgt_name}.*')
+    assert (
+        paths
+    ), f"Path for HGT name {hgt_name} could not be found in {SRTM1_DIR}. Perhaps there is no file for those coordinates?"
+    return paths[0]
+
+
+def get_srtm3_file_path(hgt_name: str):
     for sub_dir in _HGT_SUBDIRS:
-        hgt_path = HGT_DIR / sub_dir / f"{hgt_name}.hgt.zip"
+        hgt_path = SRTM3_DIR / sub_dir / f"{hgt_name}.hgt.zip"
         if hgt_path.exists():
             return hgt_path
     assert (
@@ -51,7 +59,8 @@ def get_file_path(hgt_name: str):
     ), f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates?"
 
 
-HGT_DIR = Path(os.environ["SRTM_DIR"])
+SRTM1_DIR = Path(os.environ["SRTM1_DIR"])
+SRTM3_DIR = Path(os.environ["SRTM3_DIR"])
 _HGT_SUBDIRS = (
     "Eurasia",
     "North_America",

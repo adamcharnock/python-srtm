@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Callable
 from zipfile import ZipFile
 
-from srtm.utilities import get_file_path
+from srtm.utilities import get_srtm3_file_path, get_srtm1_file_path
 from srtm.base_coordinates import RasterBaseCoordinates
 
 
@@ -13,6 +13,7 @@ class HeightMap:
     """
     raster: bytes = None
     base_coordinates: RasterBaseCoordinates
+    file_path_fn: Callable = None
     expected_values = 1442401
     values_per_row = 1201
 
@@ -28,7 +29,7 @@ class HeightMap:
     @classmethod
     def from_base_coordinates(cls, base_coordinates: RasterBaseCoordinates):
         return cls(
-            path=get_file_path(base_coordinates.file_name),
+            path=cls.file_path_fn(base_coordinates.file_name),
             base_coordinates=base_coordinates,
         )
 
@@ -53,7 +54,10 @@ class HeightMap:
     def validate(self):
         """Perform sanity checks"""
         expected_bytes = self.expected_values * 2
-        assert len(self.raster) == expected_bytes
+        assert len(self.raster) == expected_bytes, (
+            f"Unexpected number of bytes found in {self.path}. "
+            f"Expected {expected_bytes}, found {len(self.raster)}"
+        )
 
     def get_height(self, x, y) -> int:
         """Get the height at the given pixel
@@ -103,3 +107,28 @@ class HeightMap:
         y = round(latitude_offset / self.pixel_width) + 1
 
         return x, y
+
+
+class Srtm1HeightMap(HeightMap):
+    """Provides access to a single SRTM HGT file
+
+    Data will be lazy-loaded on first access
+    """
+    raster: bytes = None
+    base_coordinates: RasterBaseCoordinates
+
+    expected_values = 12967201
+    values_per_row = 3601
+    file_path_fn = get_srtm1_file_path
+
+
+class Srtm3HeightMap(HeightMap):
+    """Provides access to a single SRTM HGT file
+
+    Data will be lazy-loaded on first access
+    """
+    raster: bytes = None
+    base_coordinates: RasterBaseCoordinates
+    expected_values = 1442401
+    values_per_row = 1201
+    file_path_fn = get_srtm3_file_path

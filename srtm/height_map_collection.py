@@ -1,8 +1,9 @@
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Type
 
 from srtm.base_coordinates import RasterBaseCoordinates
-from srtm.utilities import points_on_line, HGT_DIR
-from srtm.height_maps import HeightMap
+from srtm.utilities import points_on_line, SRTM3_DIR, SRTM1_DIR
+from srtm.height_maps import HeightMap, Srtm3HeightMap, Srtm1HeightMap
 
 
 class HeightMapCollection:
@@ -11,11 +12,17 @@ class HeightMapCollection:
     This will lazy load data as needed
     """
     height_maps: Dict[RasterBaseCoordinates, HeightMap]
+    height_map_class: Type[HeightMap] = None
+    hgt_dir: Path = None
 
     def __init__(self, auto_build_index=True):
         self.height_maps = {}
         if auto_build_index:
             self.build_file_index()
+
+        assert self.height_map_class, (
+            "Error, use Srtm3HeightMapCollection or Srtm1HeightMapCollection"
+        )
 
     def build_file_index(self):
         """Load an index of all available files
@@ -24,9 +31,9 @@ class HeightMapCollection:
         This is lazy-loaded on demand
         """
         self.height_maps = {}
-        for hgt_path in HGT_DIR.glob("**/*.hgt*"):
+        for hgt_path in self.hgt_dir.glob("**/*.hgt*"):
             hgt_name = hgt_path.name.split(".")[0]
-            self.height_maps[RasterBaseCoordinates.from_file_name(hgt_name)] = HeightMap(
+            self.height_maps[RasterBaseCoordinates.from_file_name(hgt_name)] = self.height_map_class(
                 path=hgt_path
             )
 
@@ -75,12 +82,13 @@ class HeightMapCollection:
         end_longitude: float,
     ):
         """Get the elevation profile between the two points given"""
-        # TODO: Remove magic number to setting
+        values_per_degree = self.height_map_class.values_per_row
+
         def to_int(lat_lng: float) -> int:
-            return round(lat_lng * 1200)
+            return round(lat_lng * values_per_degree)
 
         def to_float(lat_lng_int: int) -> float:
-            return lat_lng_int / 1200
+            return lat_lng_int / values_per_degree
 
         points = points_on_line(
             x1=to_int(start_latitude),
@@ -96,3 +104,13 @@ class HeightMapCollection:
                 latitude, longitude
             ))
         return elevations
+
+
+class Srtm3HeightMapCollection(HeightMapCollection):
+    height_map_class = Srtm3HeightMap
+    hgt_dir = SRTM3_DIR
+
+
+class Srtm1HeightMapCollection(HeightMapCollection):
+    height_map_class = Srtm1HeightMap
+    hgt_dir = SRTM1_DIR
