@@ -50,6 +50,8 @@ Or SRTM3:
 Release process
 ---------------
 
+For internal reference:
+
 .. code-block::
 
    # Run the tests
