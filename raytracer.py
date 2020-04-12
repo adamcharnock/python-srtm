@@ -2,7 +2,7 @@
 import math
 import os
 from pathlib import Path
-from typing import NamedTuple, Dict
+from typing import NamedTuple, Dict, Tuple
 from zipfile import ZipFile
 
 HGT_DIR = Path(os.environ['SRTM_DIR'])
@@ -90,6 +90,8 @@ class HeightMap:
     def __init__(self, raster, base_coordinates):
         self.raster = raster
         self.base_coordinates = base_coordinates
+        # Subtract one as each row overlaps the neighbouring raster by 1 pixel
+        self.pixel_width = 1 / (self.values_per_row - 1)
 
     @classmethod
     def from_file(cls, path: Path):
@@ -133,7 +135,27 @@ class HeightMap:
         return int.from_bytes(self.raster[byte_number:byte_number+2], byteorder="big")
 
     def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float):
-        pass
+        x, y = self._latitude_and_longitude_to_coordinates(latitude, longitude)
+        return self.get_height(x, y)
+
+    def _latitude_and_longitude_to_coordinates(self, latitude: float, longitude: float) -> Tuple[int, int]:
+        origin_latitude = self.base_coordinates.latitude + 1
+        origin_longitude = self.base_coordinates.longitude
+        latitude_offset = origin_latitude - latitude
+        longitude_offset = longitude - origin_longitude
+
+        if latitude_offset > 1 or latitude_offset < 0:
+            raise ValueError(f"Latitude {latitude} with offset {latitude_offset} is not within this heightmap of base coordinates {base}")
+        if longitude_offset > 1 or longitude_offset < 0:
+            raise ValueError(f"Longitude {longitude} with offset {longitude_offset} is not within this heightmap of base coordinates {base}")
+
+        # Add one because pixels are 1-indexed
+        x = round(longitude_offset / self.pixel_width) + 1
+        y = round(latitude_offset / self.pixel_width) + 1
+
+        return x, y
+
+
 
 
 class HeightMapCollection:

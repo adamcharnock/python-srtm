@@ -12,12 +12,15 @@ CREATE EXTENSION postgis_sfcgal;
 # SQL from HGT files
 
 ```
-cd /Volumes/General-1/srtm/version2_1/SRTM3/Eurasia
+cd /Volumes/General-1/srtm/version2_1/SRTM3
 raster2pgsql -s 4236 -d -F -I -C -b 1 \
-    N40W007.hgt.zip \
-    N40W008.hgt.zip \
-    N39W007.hgt.zip \
-    N39W008.hgt.zip \
+    Eurasia/N40W007.hgt.zip \
+    Eurasia/N40W008.hgt.zip \
+    Eurasia/N39W007.hgt.zip \
+    Eurasia/N39W008.hgt.zip \
+    Eurasia/N40E015.hgt.zip \
+    Africa/S34E018.hgt.zip \
+    Islands/S08W015.hgt.zip \
     public.heightmap \
     | psql -h127.0.0.1 -p5433 -dpostgres -Upostgres
 ```
