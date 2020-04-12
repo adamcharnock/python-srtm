@@ -45,6 +45,8 @@ python
 
 ## Release process
 
+For internal reference:
+
 ```
 # Run the tests
 pytest

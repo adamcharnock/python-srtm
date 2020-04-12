@@ -4,3 +4,4 @@
 *.csv
 *.sql
 .env
+/dist

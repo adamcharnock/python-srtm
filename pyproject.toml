@@ -7,6 +7,9 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/adamcharnock/python-srtm"
 keywords = ["nasa", "geospatial", "altitude", "elevation-profile"]
+packages = [
+    { include = "srtm" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
