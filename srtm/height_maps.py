@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Tuple
 from zipfile import ZipFile
 
-from srtm.utilities import get_hgt_path
+from srtm.utilities import get_file_path
 from srtm.base_coordinates import RasterBaseCoordinates
 
 
@@ -18,7 +18,7 @@ class HeightMap:
 
     def __init__(self, path: Path, base_coordinates: RasterBaseCoordinates = None):
         self.path = path
-        self.base_coordinates = base_coordinates or RasterBaseCoordinates.from_hgt_path(
+        self.base_coordinates = base_coordinates or RasterBaseCoordinates.from_file_path(
             path
         )
 
@@ -28,7 +28,7 @@ class HeightMap:
     @classmethod
     def from_base_coordinates(cls, base_coordinates: RasterBaseCoordinates):
         return cls(
-            path=get_hgt_path(base_coordinates.hgt_name),
+            path=get_file_path(base_coordinates.file_name),
             base_coordinates=base_coordinates,
         )
 

@@ -26,7 +26,7 @@ class HeightMapCollection:
         self.height_maps = {}
         for hgt_path in HGT_DIR.glob("**/*.hgt*"):
             hgt_name = hgt_path.name.split(".")[0]
-            self.height_maps[RasterBaseCoordinates.from_hgt_name(hgt_name)] = HeightMap(
+            self.height_maps[RasterBaseCoordinates.from_file_name(hgt_name)] = HeightMap(
                 path=hgt_path
             )
 

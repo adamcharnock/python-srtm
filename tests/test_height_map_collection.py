@@ -21,8 +21,8 @@ def test_height_map_collection_load_area():
     collection = HeightMapCollection()
     collection.build_file_index()
     collection.load_area(
-        RasterBaseCoordinates.from_hgt_name("N38W006"),
-        RasterBaseCoordinates.from_hgt_name("N40W008"),
+        RasterBaseCoordinates.from_file_name("N38W006"),
+        RasterBaseCoordinates.from_file_name("N40W008"),
     )
     loaded_height_maps = [hm for hm in collection.height_maps.values() if hm.raster]
     assert len(loaded_height_maps) == 9

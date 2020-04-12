@@ -41,7 +41,7 @@ def points_on_line(
     return points
 
 
-def get_hgt_path(hgt_name: str):
+def get_file_path(hgt_name: str):
     for sub_dir in _HGT_SUBDIRS:
         hgt_path = HGT_DIR / sub_dir / f"{hgt_name}.hgt.zip"
         if hgt_path.exists():

@@ -23,7 +23,7 @@ class RasterBaseCoordinates(NamedTuple):
         return cls(latitude=int(latitude), longitude=int(longitude))
 
     @classmethod
-    def from_hgt_name(cls, hgt_name: str):
+    def from_file_name(cls, hgt_name: str):
         """Create an instance from a HGT name, eg "N38W006" """
         hgt_name = hgt_name.upper()
         error = f"Invalid hgt name ({hgt_name}), expected format (N|S)00(E|W)000"
@@ -46,12 +46,12 @@ class RasterBaseCoordinates(NamedTuple):
         return cls(latitude=latitude, longitude=longitude)
 
     @classmethod
-    def from_hgt_path(cls, path: Path):
+    def from_file_path(cls, path: Path):
         """Create an instance from a path to a HGT file"""
-        return cls.from_hgt_name(hgt_name=path.name.split(".")[0])
+        return cls.from_file_name(hgt_name=path.name.split(".")[0])
 
     @property
-    def hgt_name(self):
+    def file_name(self):
         """Get the expected HGT file name for these base coordinates (without file extension)"""
         if self.latitude >= 0:
             latitude = f"N{self.latitude:0>2}"

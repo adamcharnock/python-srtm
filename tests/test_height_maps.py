@@ -1,11 +1,11 @@
 from pathlib import Path
 
 from srtm.height_maps import HeightMap
-from srtm.utilities import get_hgt_path
+from srtm.utilities import get_file_path
 
 
 def test_get_value():
-    height_map = HeightMap(path=get_hgt_path("N40W008"))
+    height_map = HeightMap(path=get_file_path("N40W008"))
     # Values taken from raster parsed by postgis, loaded with raster2pgsql
     assert height_map.get_height(x=1, y=1) == 1130
     assert height_map.get_height(x=1, y=2) == 1137
@@ -59,7 +59,7 @@ def test_latitude_and_longitude_to_coordinates_sw():
 
 
 def get_height_for_latitude_and_longitude():
-    height_map = HeightMap.from_file(path=get_hgt_path("N40W008"))
+    height_map = HeightMap.from_file(path=get_file_path("N40W008"))
     assert (
         height_map.get_height_for_latitude_and_longitude(latitude=40, longitude=-7)
         == 390
