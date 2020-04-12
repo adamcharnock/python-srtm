@@ -18,9 +18,7 @@ export SRTM3_DIR=/path/to/srtm3/
 You can access either SRTM1 or SRTM3 data. SRTM 1, for example:
 
 ```python
-# SRTM1
-python
-
+# SRTM1 - 30m resolution
 >>> from srtm import Srtm1HeightMapCollection
 >>> srtm1_data = Srtm1HeightMapCollection()
 >>> srtm1_data.get_altitude(latitude=40.123, longitude=-7.456)
@@ -32,9 +30,7 @@ python
 Or SRTM3:
 
 ```python
-# SRTM3
-python
-
+# SRTM3 - 90m resolution
 >>> from srtm import Srtm3HeightMapCollection
 >>> srtm3_data = Srtm3HeightMapCollection()
 >>> srtm3_data.get_altitude(latitude=40.123, longitude=-7.456)
