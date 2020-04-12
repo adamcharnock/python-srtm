@@ -46,6 +46,9 @@ python
 ## Release process
 
 ```
+# Run the tests
+pytest
+
 # Update the setup.py
 dephell convert
 black setup.py
@@ -70,4 +73,6 @@ git push origin \
     refs/tags/"v$VERSION" \
     refs/heads/"v$VERSION" \
     master
+
+poetry publish --build
 ```
