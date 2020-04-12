@@ -1,7 +1,11 @@
+import math
 import os
 from pathlib import Path
+from statistics import mean
 from typing import List, Tuple
 
+EARTH_RADIUS = 6373000
+METERS_PER_RADIAN = 6371008
 
 def points_on_line(
     x1: int, y1: int, x2: int, y2: int
@@ -70,3 +74,57 @@ _HGT_SUBDIRS = (
     "South_America",
     "",
 )
+
+
+def haversine(lat1: float, lon1: float, lat2: float, lon2: float):
+    """Distance between two lat/long using haversine method"""
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return EARTH_RADIUS * c
+
+
+def apply_curvature(heights: List[Tuple[float, float, int]]):
+    """ Apply the earths curvature to the given heights
+
+    The points given should approximate to a straight line.
+
+    Data is a list of tuples, where each tuple
+    is lat, long, height.
+
+    Data is returned in the same form
+    """
+    left_size = math.ceil(len(heights) / 2)
+    left_heights = heights[:left_size]
+    right_heights = heights[left_size:]
+
+    # Find our mid-point
+    if len(left_heights) == len(right_heights):
+        # We have an equal number of points on both sides, so
+        # start in beween the two center points
+        start_lat = mean((left_heights[-1][0], right_heights[0][0]))
+        start_long = mean((left_heights[-1][1], right_heights[0][1]))
+    else:
+        # We have an odd number of heights, so start from the center one
+        start_lat, start_long, _ = left_heights[-1]
+    height_deltas = []
+
+    for lat, long, _ in heights:
+        distance = haversine(start_lat, start_long, lat, long)
+        distance_in_radians = distance / METERS_PER_RADIAN
+        earth_drop = EARTH_RADIUS/math.cos(distance_in_radians) - EARTH_RADIUS
+        height_deltas.append(earth_drop)
+
+    adjusted = []
+    for (latitude, longitude, height), height_delta in zip(heights, height_deltas):
+        adjusted.append((latitude, longitude, height - height_delta))
+
+    return adjusted

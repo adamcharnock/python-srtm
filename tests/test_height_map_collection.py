@@ -36,9 +36,11 @@ def test_srtm3_height_map_collection_get_elevation_profile():
         start_longitude=-7.453766,
         end_latitude=40.073772,
         end_longitude=-7.432998,
+        apply_earth_curvature=False
     )
-    assert profile[0] == 566
-    assert profile[-1] == 424
+    # lat, long, height
+    assert profile[0] == (40.10324729392173, -7.453788509575354, 566)
+    assert profile[-1] == (40.07410491257286, -7.432972522897585, 424)
     assert len(profile) == 36
 
 
@@ -50,8 +52,9 @@ def test_srtm1_height_map_collection_get_elevation_profile():
         start_longitude=-7.453766,
         end_latitude=40.073772,
         end_longitude=-7.432998,
+        apply_earth_curvature=False
     )
 
-    assert profile[0] == 563
-    assert profile[-1] == 424
+    assert profile[0] == (40.103304637600665, -7.45376284365454, 563)
+    assert profile[-1] == (40.07386836989725, -7.4329352957511805, 424)
     assert len(profile) == 107

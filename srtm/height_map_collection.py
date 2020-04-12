@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Dict, Type
 
 from srtm.base_coordinates import RasterBaseCoordinates
-from srtm.utilities import points_on_line, SRTM3_DIR, SRTM1_DIR
+from srtm.utilities import points_on_line, SRTM3_DIR, SRTM1_DIR, apply_curvature
 from srtm.height_maps import HeightMap, Srtm3HeightMap, Srtm1HeightMap
 
 
@@ -80,6 +80,7 @@ class HeightMapCollection:
         start_longitude: float,
         end_latitude: float,
         end_longitude: float,
+        apply_earth_curvature=True,
     ):
         """Get the elevation profile between the two points given"""
         values_per_degree = self.height_map_class.values_per_row
@@ -100,9 +101,13 @@ class HeightMapCollection:
 
         elevations = []
         for latitude, longitude in converted_points:
-            elevations.append(self.get_altitude(
+            elevations.append((latitude, longitude, self.get_altitude(
                 latitude, longitude
-            ))
+            )))
+
+        if apply_earth_curvature:
+            elevations = apply_curvature(elevations)
+
         return elevations
 
 
