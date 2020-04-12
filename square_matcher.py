@@ -68,6 +68,10 @@ class Line(NamedTuple):
             return self.end.lat
         return gradient * long + intercept
 
+    def get_next_point(self, point: Point, distance: float):
+        lat_delta = distance / gradient  # NO, pythag
+        long_delta = distance * gradient
+
 
 def get_squares(start: Point, end: Point, square_size: float = SQUARE_SIZE):
     line = Line(start, end)

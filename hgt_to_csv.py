@@ -90,8 +90,10 @@ def get_sample(lat, long) -> Optional[int]:
 
 
 def get_all():
-    lat_range = range(-90, 90)
-    long_range = range(-180, 180)
+    # lat_range = range(-90, 90)
+    # long_range = range(-180, 180)
+    lat_range = range(38, 40)
+    long_range = range(-7, -5)
 
     for base_lat, base_long in product(lat_range, long_range):
         if get_file_name(base_lat, base_long) not in DATA_FILES:
