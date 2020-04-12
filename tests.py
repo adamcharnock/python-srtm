@@ -167,7 +167,6 @@ def test_height_map_collection_get_elevation_profile():
         end_latitude=40.073772,
         end_longitude=-7.432998,
     )
-    breakpoint()
     assert profile[0] == 566
     assert profile[-1] == 424
     assert len(profile) == 36
