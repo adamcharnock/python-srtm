@@ -1,6 +1,27 @@
 # Attempt 2
 import math
+import os
+from pathlib import Path
 from typing import NamedTuple, Dict
+from zipfile import ZipFile
+
+HGT_DIR = Path(os.environ['SRTM_DIR'])
+_HGT_SUBDIRS = (
+    "Eurasia",
+    "North_America",
+    "Africa",
+    "Australia",
+    "Islands",
+    "South_America",
+)
+
+
+def get_hgt_path(hgt_name: str):
+    for sub_dir in _HGT_SUBDIRS:
+        hgt_path = HGT_DIR / sub_dir / f"{hgt_name}.hgt.zip"
+        if hgt_path.exists():
+            return hgt_path
+    assert False, f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates?"
 
 
 class RasterBaseCoordinates(NamedTuple):
@@ -60,6 +81,48 @@ class RasterBaseCoordinates(NamedTuple):
 
 
 class HeightMap:
+    raster: bytes
+    base_coordinates: RasterBaseCoordinates
+    expected_values = 1442401
+
+    def __init__(self, raster, base_coordinates):
+        self.raster = raster
+        self.base_coordinates = base_coordinates
+
+    @classmethod
+    def from_file(cls, path: Path):
+        hgt_name = path.name.split('.')[0]
+
+        if '.zip' in path.suffixes:
+            zipped_files = ZipFile(path).namelist()
+            zipped_files = [name for name in zipped_files if '.hgt' in name]
+            assert len(zipped_files) == 1, (
+                f"ZIP at {path} contains the wrong number of hgt files "
+                f"({len(zipped_files)}!=1). Contains {zipped_files}"
+            )
+            contents = ZipFile(path).read(zipped_files[0])
+        else:
+            contents = path.read_bytes()
+
+        height_map = cls(
+            raster=contents,
+            base_coordinates=RasterBaseCoordinates.from_hgt_name(hgt_name)
+        )
+        height_map.validate()
+        return height_map
+
+    @classmethod
+    def from_base_coordinates(cls, base_coordinates: RasterBaseCoordinates):
+        return cls.from_file(
+            path=get_hgt_path(base_coordinates.hgt_name)
+        )
+
+    def validate(self):
+        expected_bytes = self.expected_values * 2
+        assert len(self.raster) == expected_bytes
+
+
+class HeightMapCollection:
     rasters: Dict[RasterBaseCoordinates, bytes]
 
     def load(self):
