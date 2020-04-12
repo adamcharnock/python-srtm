@@ -53,6 +53,16 @@ def test_raster_base_coordinates_from_hgt_name_sw():
 # HeightMap
 
 def test_height_map_from_file():
-    assert HeightMap.from_file(
+    HeightMap.from_file(
         path=get_hgt_path("N40W008")
     )
+
+
+def test_get_value():
+    height_map = HeightMap.from_file(path=get_hgt_path("N40W008"))
+    # Values taken from raster parsed by postgis, loaded with raster2pgsql
+    assert height_map.get_height(x=1, y=1) == 1130
+    assert height_map.get_height(x=1, y=2) == 1137
+    assert height_map.get_height(x=1201, y=1) == 317
+    assert height_map.get_height(x=1, y=1201) == 620
+    assert height_map.get_height(x=1201, y=1201) == 390

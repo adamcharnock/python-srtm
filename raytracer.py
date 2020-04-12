@@ -13,6 +13,7 @@ _HGT_SUBDIRS = (
     "Australia",
     "Islands",
     "South_America",
+    "",
 )
 
 
@@ -84,6 +85,7 @@ class HeightMap:
     raster: bytes
     base_coordinates: RasterBaseCoordinates
     expected_values = 1442401
+    values_per_row = 1201
 
     def __init__(self, raster, base_coordinates):
         self.raster = raster
@@ -120,6 +122,18 @@ class HeightMap:
     def validate(self):
         expected_bytes = self.expected_values * 2
         assert len(self.raster) == expected_bytes
+
+    def get_height(self, x, y):
+        # Get the 1-indexed pixel number
+        pixel_number = x + (y - 1) * self.values_per_row
+        # Convert it ro be 0-indexed
+        pixel_number -= 1
+
+        byte_number = pixel_number * 2
+        return int.from_bytes(self.raster[byte_number:byte_number+2], byteorder="big")
+
+    def get_height_for_latitude_and_longitude(self, latitude: float, longitude: float):
+        pass
 
 
 class HeightMapCollection:
