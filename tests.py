@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from raytracer import RasterBaseCoordinates, HeightMap, get_hgt_path, HeightMapCollection
+from raytracer import RasterBaseCoordinates, HeightMap, get_hgt_path, HeightMapCollection, points_on_line
 
 
 # RasterBaseCoordinates
@@ -127,3 +127,8 @@ def test_height_map_collection_load_area():
     assert len(loaded_height_maps) == 9
     breakpoint()
 
+# points_on_line()
+
+
+def test_points_on_line():
+    assert points_on_line(0, 0, 10, 10) == 1

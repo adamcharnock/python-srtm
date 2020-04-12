@@ -2,7 +2,7 @@
 import math
 import os
 from pathlib import Path
-from typing import NamedTuple, Dict, Tuple
+from typing import NamedTuple, Dict, Tuple, Generator
 from zipfile import ZipFile
 
 HGT_DIR = Path(os.environ['SRTM_DIR'])
@@ -196,6 +196,7 @@ class HeightMapCollection:
         return height_map.get_height_for_latitude_and_longitude(latitude, longitude)
 
     def load_area(self, corner1: RasterBaseCoordinates, corner2: RasterBaseCoordinates):
+        """Pre-load a specific area of height maps"""
         min_latitude = min(corner1.latitude, corner2.latitude)
         max_latitude = max(corner1.latitude, corner2.latitude)
         min_longitude = min(corner1.longitude, corner2.longitude)
@@ -206,3 +207,47 @@ class HeightMapCollection:
             ok_longitude = min_longitude <= height_map.base_coordinates.longitude <= max_longitude
             if ok_latitude and ok_longitude:
                 height_map.ensure_loaded()
+
+    def get_elevation_profile(self, start_latitude: float, start_longitude: float, end_latitude: float, end_longitude: float):
+        # y = mx + c
+        pass
+
+
+
+
+def points_on_line(x1: float, y1: float, x2: float, y2: float) -> Generator[Tuple[float, float], None, None]:
+    points = []
+    issteep = abs(y2-y1) > abs(x2-x1)
+    if issteep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+    rev = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        rev = True
+    deltax = x2 - x1
+    deltay = abs(y2-y1)
+    error = int(deltax / 2)
+    y = y1
+    ystep = None
+    if y1 < y2:
+        ystep = 1
+    else:
+        ystep = -1
+
+    x_range = range(x1, x2 + 1)
+    if rev:
+        x_range = reversed(x_range)
+
+    for x in x_range:
+        if issteep:
+            yield y, x
+        else:
+            yield x, y
+        error -= deltay
+        if error < 0:
+            y += ystep
+            error += deltax
+
+
