@@ -1,9 +1,16 @@
 from pathlib import Path
-from typing import Dict, Type
+from typing import Dict, Type, List, NamedTuple
 
 from srtm.base_coordinates import RasterBaseCoordinates
-from srtm.utilities import points_on_line, SRTM3_DIR, SRTM1_DIR, apply_curvature
+from srtm.utilities import points_on_line, SRTM3_DIR, SRTM1_DIR, apply_curvature, haversine
 from srtm.height_maps import HeightMap, Srtm3HeightMap, Srtm1HeightMap
+
+
+class ElevationProfilePoint(NamedTuple):
+    latitude: float
+    longitude: float
+    elevation: float
+    distance: float
 
 
 class HeightMapCollection:
@@ -81,7 +88,7 @@ class HeightMapCollection:
         end_latitude: float,
         end_longitude: float,
         apply_earth_curvature=True,
-    ):
+    ) -> List[ElevationProfilePoint]:
         """Get the elevation profile between the two points given"""
         values_per_degree = self.height_map_class.values_per_row
 
@@ -108,7 +115,16 @@ class HeightMapCollection:
         if apply_earth_curvature:
             elevations = apply_curvature(elevations)
 
-        return elevations
+        elevation_points = []
+        for latitude, longitude, elevation in elevations:
+            elevation_points.append(ElevationProfilePoint(
+                latitude,
+                longitude,
+                elevation,
+                haversine(start_latitude, start_longitude, latitude, longitude)
+            ))
+
+        return elevation_points
 
 
 class Srtm3HeightMapCollection(HeightMapCollection):

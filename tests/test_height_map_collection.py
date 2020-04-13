@@ -39,8 +39,16 @@ def test_srtm3_height_map_collection_get_elevation_profile():
         apply_earth_curvature=False
     )
     # lat, long, height
-    assert profile[0] == (40.10324729392173, -7.453788509575354, 566)
-    assert profile[-1] == (40.07410491257286, -7.432972522897585, 424)
+    assert profile[0].latitude == 40.10324729392173
+    assert profile[0].longitude == -7.453788509575354
+    assert profile[0].elevation == 566
+    assert profile[0].distance == 4.509638213110301
+
+    assert profile[-1].latitude == 40.07410491257286
+    assert profile[-1].longitude == -7.432972522897585
+    assert profile[-1].elevation == 424
+    assert profile[-1].distance == 3696.587861535811
+
     assert len(profile) == 36
 
 
@@ -55,6 +63,14 @@ def test_srtm1_height_map_collection_get_elevation_profile():
         apply_earth_curvature=False
     )
 
-    assert profile[0] == (40.103304637600665, -7.45376284365454, 563)
-    assert profile[-1] == (40.07386836989725, -7.4329352957511805, 424)
+    assert profile[0].latitude == 40.103304637600665
+    assert profile[0].longitude == -7.45376284365454
+    assert profile[0].elevation == 563
+    assert profile[0].distance == 2.3111704885835263
+
+    assert profile[-1].latitude == 40.07386836989725
+    assert profile[-1].longitude == -7.4329352957511805
+    assert profile[-1].elevation == 424
+    assert profile[-1].distance == 3721.2192128118545
+
     assert len(profile) == 107
