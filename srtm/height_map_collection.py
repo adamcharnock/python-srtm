@@ -1,16 +1,16 @@
 from pathlib import Path
-from typing import Dict, Type, List, NamedTuple
+from typing import Dict, Type, List
 
 from srtm.base_coordinates import RasterBaseCoordinates
-from srtm.utilities import points_on_line, SRTM3_DIR, SRTM1_DIR, apply_curvature, haversine
+from srtm.utilities import (
+    points_on_line,
+    SRTM3_DIR,
+    SRTM1_DIR,
+    apply_curvature,
+    haversine,
+    ElevationProfilePoint,
+)
 from srtm.height_maps import HeightMap, Srtm3HeightMap, Srtm1HeightMap
-
-
-class ElevationProfilePoint(NamedTuple):
-    latitude: float
-    longitude: float
-    elevation: float
-    distance: float
 
 
 class HeightMapCollection:
@@ -18,6 +18,7 @@ class HeightMapCollection:
 
     This will lazy load data as needed
     """
+
     height_maps: Dict[RasterBaseCoordinates, HeightMap]
     height_map_class: Type[HeightMap] = None
     hgt_dir: Path = None
@@ -27,9 +28,9 @@ class HeightMapCollection:
         if auto_build_index:
             self.build_file_index()
 
-        assert self.height_map_class, (
-            "Error, use Srtm3HeightMapCollection or Srtm1HeightMapCollection"
-        )
+        assert (
+            self.height_map_class
+        ), "Error, use Srtm3HeightMapCollection or Srtm1HeightMapCollection"
 
     def build_file_index(self):
         """Load an index of all available files
@@ -40,9 +41,9 @@ class HeightMapCollection:
         self.height_maps = {}
         for hgt_path in self.hgt_dir.glob("**/*.hgt*"):
             hgt_name = hgt_path.name.split(".")[0]
-            self.height_maps[RasterBaseCoordinates.from_file_name(hgt_name)] = self.height_map_class(
-                path=hgt_path
-            )
+            self.height_maps[
+                RasterBaseCoordinates.from_file_name(hgt_name)
+            ] = self.height_map_class(path=hgt_path)
 
     def get_height_map_for_latitude_and_longitude(
         self, latitude: float, longitude: float
@@ -57,9 +58,7 @@ class HeightMapCollection:
                 f"build_file_index() on your heightmap collection?"
             )
 
-    def get_altitude(
-        self, latitude: float, longitude: float
-    ) -> int:
+    def get_altitude(self, latitude: float, longitude: float) -> int:
         """Get the height of the given latitude and longitude"""
         height_map = self.get_height_map_for_latitude_and_longitude(latitude, longitude)
         return height_map.get_altitude_for_latitude_and_longitude(latitude, longitude)
@@ -108,21 +107,23 @@ class HeightMapCollection:
 
         elevations = []
         for latitude, longitude in converted_points:
-            elevations.append((latitude, longitude, self.get_altitude(
-                latitude, longitude
-            )))
+            elevations.append(
+                (latitude, longitude, self.get_altitude(latitude, longitude))
+            )
 
         if apply_earth_curvature:
             elevations = apply_curvature(elevations)
 
         elevation_points = []
         for latitude, longitude, elevation in elevations:
-            elevation_points.append(ElevationProfilePoint(
-                latitude,
-                longitude,
-                elevation,
-                haversine(start_latitude, start_longitude, latitude, longitude)
-            ))
+            elevation_points.append(
+                ElevationProfilePoint(
+                    latitude,
+                    longitude,
+                    elevation,
+                    haversine(start_latitude, start_longitude, latitude, longitude),
+                )
+            )
 
         return elevation_points
 

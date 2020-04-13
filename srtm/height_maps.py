@@ -11,6 +11,7 @@ class HeightMap:
 
     Data will be lazy-loaded on first access
     """
+
     raster: bytes = None
     base_coordinates: RasterBaseCoordinates
     file_path_fn: Callable = None
@@ -19,8 +20,8 @@ class HeightMap:
 
     def __init__(self, path: Path, base_coordinates: RasterBaseCoordinates = None):
         self.path = path
-        self.base_coordinates = base_coordinates or RasterBaseCoordinates.from_file_path(
-            path
+        self.base_coordinates = (
+            base_coordinates or RasterBaseCoordinates.from_file_path(path)
         )
 
         # We subtract one as each row overlaps the neighbouring raster by 1 pixel
@@ -114,6 +115,7 @@ class Srtm1HeightMap(HeightMap):
 
     Data will be lazy-loaded on first access
     """
+
     raster: bytes = None
     base_coordinates: RasterBaseCoordinates
 
@@ -127,6 +129,7 @@ class Srtm3HeightMap(HeightMap):
 
     Data will be lazy-loaded on first access
     """
+
     raster: bytes = None
     base_coordinates: RasterBaseCoordinates
     expected_values = 1442401

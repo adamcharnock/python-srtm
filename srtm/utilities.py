@@ -2,17 +2,16 @@ import math
 import os
 from pathlib import Path
 from statistics import mean
-from typing import List, Tuple
+from typing import List, Tuple, NamedTuple
 
 EARTH_RADIUS = 6373000
 METERS_PER_RADIAN = 6371008
 
-def points_on_line(
-    x1: int, y1: int, x2: int, y2: int
-) -> List[Tuple[int, int]]:
+
+def points_on_line(x1: int, y1: int, x2: int, y2: int) -> List[Tuple[int, int]]:
     # Credit: https://stackoverflow.com/questions/25837544
     points = []
-    issteep = abs(y2-y1) > abs(x2-x1)
+    issteep = abs(y2 - y1) > abs(x2 - x1)
     if issteep:
         x1, y1 = y1, x1
         x2, y2 = y2, x2
@@ -22,7 +21,7 @@ def points_on_line(
         y1, y2 = y2, y1
         rev = True
     deltax = x2 - x1
-    deltay = abs(y2-y1)
+    deltay = abs(y2 - y1)
     error = int(deltax / 2)
     y = y1
     ystep = None
@@ -46,7 +45,7 @@ def points_on_line(
 
 
 def get_srtm1_file_path(hgt_name: str):
-    paths = SRTM1_DIR.glob(f'**/{hgt_name}.*')
+    paths = SRTM1_DIR.glob(f"**/{hgt_name}.*")
     assert (
         paths
     ), f"Path for HGT name {hgt_name} could not be found in {SRTM1_DIR}. Perhaps there is no file for those coordinates?"
@@ -86,7 +85,10 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float):
     dlon = lon2 - lon1
     dlat = lat2 - lat1
 
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
     return EARTH_RADIUS * c
@@ -129,7 +131,7 @@ def apply_curvature(heights: List[Tuple[float, float, int]]):
     for lat, long, _ in heights:
         distance = haversine(start_lat, start_long, lat, long)
         distance_in_radians = distance / METERS_PER_RADIAN
-        earth_drop = EARTH_RADIUS/math.cos(distance_in_radians) - EARTH_RADIUS
+        earth_drop = EARTH_RADIUS / math.cos(distance_in_radians) - EARTH_RADIUS
         height_deltas.append(earth_drop)
 
     # Now we have all our altitudes, subtract each one from the heights we were given,
@@ -139,3 +141,48 @@ def apply_curvature(heights: List[Tuple[float, float, int]]):
         adjusted.append((latitude, longitude, height - height_delta))
 
     return adjusted
+
+
+class StraightLineEquation(NamedTuple):
+    gradient: float
+    c: float
+
+    def y(self, x):
+        return self.gradient * x + self.c
+
+    @classmethod
+    def from_points(cls, x1, y1, x2, y2) -> "StraightLineEquation":
+        gradient = (y2 - y1) / (x2 - x1)
+        c = y1 - (gradient * x1)
+        return cls(gradient, c)
+
+
+class ElevationProfilePoint(NamedTuple):
+    latitude: float
+    longitude: float
+    elevation: float
+    distance: float
+
+
+def get_clearances(
+    elevation_profile: List[ElevationProfilePoint],
+    start_elevation_offset: float = 0,
+    end_elevation_offset: float = 0,
+) -> List[float]:
+    """Get a list of clearances between the line-of-sight and ground level"""
+    start = elevation_profile[0]
+    end = elevation_profile[-1]
+
+    straight_line = StraightLineEquation.from_points(
+        x1=start.distance,
+        y1=start.elevation + start_elevation_offset,
+        x2=end.distance,
+        y2=end.elevation + end_elevation_offset,
+    )
+
+    clearances = []
+    for point in elevation_profile:
+        line_of_sight_elevation = straight_line.y(point.distance)
+        clearances.append(line_of_sight_elevation - point.elevation)
+
+    return clearances

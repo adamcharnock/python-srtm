@@ -7,6 +7,7 @@ class RasterBaseCoordinates(NamedTuple):
 
     HGT files are named based on the coordinate of their lower-left corner
     """
+
     latitude: int
     longitude: int
 

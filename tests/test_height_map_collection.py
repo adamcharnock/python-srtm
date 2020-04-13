@@ -1,5 +1,8 @@
 from srtm.base_coordinates import RasterBaseCoordinates
-from srtm.height_map_collection import Srtm3HeightMapCollection, Srtm1HeightMapCollection
+from srtm.height_map_collection import (
+    Srtm3HeightMapCollection,
+    Srtm1HeightMapCollection,
+)
 
 
 def test_srtm3_height_map_collection_build_file_index():
@@ -11,10 +14,7 @@ def test_srtm3_height_map_collection_build_file_index():
 def test_srtm3_height_map_collection_get_height_for_latitude_and_longitude():
     collection = Srtm3HeightMapCollection()
     collection.build_file_index()
-    assert (
-        collection.get_altitude(latitude=40, longitude=-7)
-        == 390
-    )
+    assert collection.get_altitude(latitude=40, longitude=-7) == 390
 
 
 def test_srtm3_height_map_collection_load_area():
@@ -36,7 +36,7 @@ def test_srtm3_height_map_collection_get_elevation_profile():
         start_longitude=-7.453766,
         end_latitude=40.073772,
         end_longitude=-7.432998,
-        apply_earth_curvature=False
+        apply_earth_curvature=False,
     )
     # lat, long, height
     assert profile[0].latitude == 40.10324729392173
@@ -60,7 +60,7 @@ def test_srtm1_height_map_collection_get_elevation_profile():
         start_longitude=-7.453766,
         end_latitude=40.073772,
         end_longitude=-7.432998,
-        apply_earth_curvature=False
+        apply_earth_curvature=False,
     )
 
     assert profile[0].latitude == 40.103304637600665

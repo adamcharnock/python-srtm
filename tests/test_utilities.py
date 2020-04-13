@@ -1,4 +1,4 @@
-from srtm.utilities import points_on_line, apply_curvature
+from srtm.utilities import points_on_line, apply_curvature, StraightLineEquation, ElevationProfilePoint, get_clearances
 
 
 def test_points_on_line():
@@ -41,3 +41,29 @@ def test_apply_curvature_simple_even():
     assert heights[0] == heights[-1]
     assert heights[1] == heights[-2]
     assert heights[2] == heights[-3]
+
+
+def test_straight_line_equation():
+    line = StraightLineEquation.from_points(0, 0, 10, 10)
+    assert line.c == 0
+    assert line.y(x=5) == 5
+
+    line = StraightLineEquation.from_points(10, 10, 0, 0)
+    assert line.c == 0
+    assert line.y(x=5) == 5
+
+    line = StraightLineEquation.from_points(1, 10, 2, 11)
+    assert line.c == 9
+    assert line.y(x=3) == 12
+
+
+def test_get_clearances():
+    # lat, long, elevation, distance
+    profile = [
+        ElevationProfilePoint(None, None, 10, 0),
+        ElevationProfilePoint(None, None, 5, 1),
+        ElevationProfilePoint(None, None, 20, 2),
+        ElevationProfilePoint(None, None, 10, 3),
+    ]
+    assert get_clearances(profile) == [0, 5, -10, 0]
+    assert get_clearances(profile, 1, 1) == [1, 6, -9, 1]
