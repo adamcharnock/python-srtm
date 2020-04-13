@@ -7,13 +7,11 @@ from srtm.height_map_collection import (
 
 def test_srtm3_height_map_collection_build_file_index():
     collection = Srtm3HeightMapCollection()
-    collection.build_file_index()
     assert len(collection.height_maps) == 13967
 
 
 def test_srtm3_height_map_collection_get_height_for_latitude_and_longitude():
     collection = Srtm3HeightMapCollection()
-    collection.build_file_index()
     assert collection.get_altitude(latitude=40, longitude=-7) == 390
 
 
@@ -74,3 +72,14 @@ def test_srtm1_height_map_collection_get_elevation_profile():
     assert profile[-1].distance == 3721.2192128118545
 
     assert len(profile) == 107
+
+
+def test_srtm3_get_points():
+    collection = Srtm3HeightMapCollection(auto_build_index=False)
+    points = list(collection.get_points(10, 50, 10.0083, 50.0083))
+
+    assert points[0] == (10.0, 50.0)
+    assert points[9] == (10.007499999999993, 50.0)
+    assert points[10] == (10.0, 50.00083333333333)
+    assert points[-1] == (10.007499999999993, 50.00749999999999)
+    assert len(points) == 100

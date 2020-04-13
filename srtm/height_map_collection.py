@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Type, List
+from typing import Dict, Type, List, Generator, Tuple
 
 from srtm.base_coordinates import RasterBaseCoordinates
 from srtm.utilities import (
@@ -127,6 +127,25 @@ class HeightMapCollection:
 
         return elevation_points
 
+    def get_points(self, min_latitude, min_longitude, max_latitude, max_longitude) -> Generator[Tuple[float, float], None, None]:
+        # TODO: Make the pixel width more easily accessible
+        step = 1 / (self.height_map_class.values_per_row - 1)
+        min_latitude = round(min_latitude / step) * step
+        min_longitude = round(min_longitude / step) * step
+
+        latitude = min_latitude
+        longitude = min_longitude
+
+        while True:
+            if latitude > max_latitude:
+                latitude = min_latitude
+                longitude += step
+
+                if longitude > max_longitude:
+                    break
+
+            yield latitude, longitude
+            latitude += step
 
 class Srtm3HeightMapCollection(HeightMapCollection):
     height_map_class = Srtm3HeightMap
