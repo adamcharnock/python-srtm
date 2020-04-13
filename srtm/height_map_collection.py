@@ -128,6 +128,9 @@ class HeightMapCollection:
         return elevation_points
 
     def get_points(self, min_latitude, min_longitude, max_latitude, max_longitude) -> Generator[Tuple[float, float], None, None]:
+        assert min_latitude < max_latitude
+        assert min_longitude < max_longitude
+
         # TODO: Make the pixel width more easily accessible
         step = 1 / (self.height_map_class.values_per_row - 1)
         min_latitude = round(min_latitude / step) * step

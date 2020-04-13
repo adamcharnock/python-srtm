@@ -173,6 +173,9 @@ def get_clearances(
     start = elevation_profile[0]
     end = elevation_profile[-1]
 
+    if start == end:
+        return []
+
     straight_line = StraightLineEquation.from_points(
         x1=start.distance,
         y1=start.elevation + start_elevation_offset,

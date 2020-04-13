@@ -39,6 +39,19 @@ Or SRTM3:
 [626, 616, 585, 593, 577, 548, 528, 514]
 ```
 
+## Profiling
+
+```python
+import cProfile
+cProfile.run('function_to_profile()', filename='output.cprof')
+```
+
+```bash
+brew install qcachegrind
+pip install pyprof2calltree
+pyprof2calltree -k -i /pythonprofiling/profiler/first_iteration.cprof
+```
+
 ## Release process
 
 For internal reference:
