@@ -23,14 +23,21 @@ class HeightMapCollection:
     height_map_class: Type[HeightMap] = None
     hgt_dir: Path = None
 
-    def __init__(self, auto_build_index=True):
+    def __init__(self, auto_build_index=True, hgt_dir: Path=None):
         self.height_maps = {}
         if auto_build_index:
             self.build_file_index()
 
+        if hgt_dir is not None:
+            self.hgt_dir = hgt_dir
+
         assert (
             self.height_map_class
         ), "Error, use Srtm3HeightMapCollection or Srtm1HeightMapCollection"
+
+        assert (
+            self.hgt_dir
+        ), "No HGT direction set. Do you need to set the SRTM1_DIR or SRTM3_DIR environment variables?"
 
     def build_file_index(self):
         """Load an index of all available files
@@ -111,9 +118,6 @@ class HeightMapCollection:
                 (latitude, longitude, self.get_altitude(latitude, longitude))
             )
 
-        if apply_earth_curvature:
-            elevations = apply_curvature(elevations)
-
         elevation_points = []
         for latitude, longitude, elevation in elevations:
             elevation_points.append(
@@ -124,6 +128,9 @@ class HeightMapCollection:
                     haversine(start_latitude, start_longitude, latitude, longitude),
                 )
             )
+
+        if apply_earth_curvature:
+            elevation_points = apply_curvature(elevation_points)
 
         return elevation_points
 

@@ -1,4 +1,4 @@
-import math
+from math import sin, cos, radians, atan2, sqrt, ceil
 import os
 from pathlib import Path
 from statistics import mean
@@ -62,8 +62,9 @@ def get_srtm3_file_path(hgt_name: str):
     ), f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates?"
 
 
-SRTM1_DIR = Path(os.environ["SRTM1_DIR"])
-SRTM3_DIR = Path(os.environ["SRTM3_DIR"])
+SRTM1_DIR = Path(os.environ.get("SRTM1_DIR", ""))
+SRTM3_DIR = Path(os.environ.get("SRTM3_DIR", ""))
+
 _HGT_SUBDIRS = (
     "Eurasia",
     "North_America",
@@ -77,24 +78,24 @@ _HGT_SUBDIRS = (
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float):
     """Distance between two lat/long using haversine method"""
-    lat1 = math.radians(lat1)
-    lon1 = math.radians(lon1)
-    lat2 = math.radians(lat2)
-    lon2 = math.radians(lon2)
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat2 = radians(lat2)
+    lon2 = radians(lon2)
 
     dlon = lon2 - lon1
     dlat = lat2 - lat1
 
     a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        sin(dlat / 2) ** 2
+        + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     return EARTH_RADIUS * c
 
 
-def apply_curvature(heights: List[Tuple[float, float, int]]):
+def apply_curvature(profile_points: List["ElevationProfilePoint"]):
     """ Apply the earths curvature to the given heights
 
     The points given should approximate to a straight line.
@@ -103,20 +104,20 @@ def apply_curvature(heights: List[Tuple[float, float, int]]):
 
     Data is returned in the same form
     """
-    left_size = math.ceil(len(heights) / 2)
-    left_heights = heights[:left_size]
-    right_heights = heights[left_size:]
+    left_size = ceil(len(profile_points) / 2)
+    left_points = profile_points[:left_size]
+    right_points = profile_points[left_size:]
 
     # Find our mid-point
-    if len(left_heights) == len(right_heights):
+    if len(left_points) == len(right_points):
         # We have an equal number of points on both sides, so
-        # start in beween the two center points
-        start_lat = mean((left_heights[-1][0], right_heights[0][0]))
-        start_long = mean((left_heights[-1][1], right_heights[0][1]))
+        # start in between the two center points
+        start_lat = mean((left_points[-1].latitude, right_points[0].latitude))
+        start_long = mean((left_points[-1].longitude, right_points[0].longitude))
     else:
         # We have an odd number of heights, so start from the center one
-        start_lat, start_long, _ = left_heights[-1]
-    height_deltas = []
+        start_lat = left_points[-1].latitude
+        start_long = left_points[-1].longitude
 
     # We we imagine we are walking, and rather then follow the curvature of the
     # earth, we walk out straight on an imaginary plank, seeing the earth slowly
@@ -128,17 +129,18 @@ def apply_curvature(heights: List[Tuple[float, float, int]]):
     # Given we're now above the earth on our imaginary plank, the hypotenuse
     # should be greater than the earth's radius by however high up we are.
     # If we therefore take away the earths radius, we'll get our altitude.
-    for lat, long, _ in heights:
-        distance = haversine(start_lat, start_long, lat, long)
-        distance_in_radians = distance / METERS_PER_RADIAN
-        earth_drop = EARTH_RADIUS / math.cos(distance_in_radians) - EARTH_RADIUS
+    height_deltas = []
+    for profile_point in profile_points:
+        distance_in_radians = profile_point.distance / METERS_PER_RADIAN
+        earth_drop = EARTH_RADIUS / cos(distance_in_radians) - EARTH_RADIUS
         height_deltas.append(earth_drop)
 
     # Now we have all our altitudes, subtract each one from the heights we were given,
     # thereby reducing all the heights to account for the curvature of the earth.
     adjusted = []
-    for (latitude, longitude, height), height_delta in zip(heights, height_deltas):
-        adjusted.append((latitude, longitude, height - height_delta))
+    for profile_point, height_delta in zip(profile_points, height_deltas):
+        profile_point._replace(elevation=profile_point.elevation - height_delta)
+        adjusted.append(profile_point)
 
     return adjusted
 
