@@ -23,7 +23,7 @@ if os.path.exists(readme_path):
 setup(
     long_description=readme,
     name="python-srtm",
-    version="0.1.0",
+    version="0.2.0",
     python_requires="==3.*,>=3.8.0",
     project_urls={"repository": "https://github.com/adamcharnock/python-srtm"},
     author="Adam Charnock",

@@ -23,9 +23,7 @@ You can access either SRTM1 or SRTM3 data. SRTM 1, for example:
 
 .. code-block:: python
 
-   # SRTM1
-   python
-
+   # SRTM1 - 30m resolution
    >>> from srtm import Srtm1HeightMapCollection
    >>> srtm1_data = Srtm1HeightMapCollection()
    >>> srtm1_data.get_altitude(latitude=40.123, longitude=-7.456)
@@ -37,15 +35,27 @@ Or SRTM3:
 
 .. code-block:: python
 
-   # SRTM3
-   python
-
+   # SRTM3 - 90m resolution
    >>> from srtm import Srtm3HeightMapCollection
    >>> srtm3_data = Srtm3HeightMapCollection()
    >>> srtm3_data.get_altitude(latitude=40.123, longitude=-7.456)
    608
    >>> Srtm3HeightMapCollection().get_elevation_profile(40.123, -7.456, 40.129, -7.460)
    [626, 616, 585, 593, 577, 548, 528, 514]
+
+Profiling
+---------
+
+.. code-block:: python
+
+   import cProfile
+   cProfile.run('function_to_profile()', filename='output.cprof')
+
+.. code-block:: bash
+
+   brew install qcachegrind
+   pip install pyprof2calltree
+   pyprof2calltree -k -i /pythonprofiling/profiler/first_iteration.cprof
 
 Release process
 ---------------
