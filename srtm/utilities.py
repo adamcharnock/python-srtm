@@ -95,7 +95,7 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float):
     return EARTH_RADIUS * c
 
 
-def apply_curvature(profile_points: List["ElevationProfilePoint"]):
+def apply_curvature(profile_points: List["ElevationProfilePoint"]) -> List["ElevationProfilePoint"]:
     """ Apply the earths curvature to the given heights
 
     The points given should approximate to a straight line.
@@ -131,7 +131,8 @@ def apply_curvature(profile_points: List["ElevationProfilePoint"]):
     # If we therefore take away the earths radius, we'll get our altitude.
     height_deltas = []
     for profile_point in profile_points:
-        distance_in_radians = profile_point.distance / METERS_PER_RADIAN
+        distance = haversine(start_lat, start_long, profile_point.latitude, profile_point.longitude)
+        distance_in_radians = distance / METERS_PER_RADIAN
         earth_drop = EARTH_RADIUS / cos(distance_in_radians) - EARTH_RADIUS
         height_deltas.append(earth_drop)
 
@@ -139,8 +140,7 @@ def apply_curvature(profile_points: List["ElevationProfilePoint"]):
     # thereby reducing all the heights to account for the curvature of the earth.
     adjusted = []
     for profile_point, height_delta in zip(profile_points, height_deltas):
-        profile_point._replace(elevation=profile_point.elevation - height_delta)
-        adjusted.append(profile_point)
+        adjusted.append(profile_point._replace(elevation=profile_point.elevation - height_delta))
 
     return adjusted
 

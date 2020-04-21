@@ -9,17 +9,17 @@ def test_points_on_line():
 
 def test_apply_curvature_simple_odd():
     adjusted = apply_curvature(
-        heights=[
-            (10.1, -10, 0),
-            (10.2, -10, 0),
-            (10.3, -10, 0),
-            (10.4, -10, 0),
-            (10.5, -10, 0),
-            (10.6, -10, 0),
-            (10.7, -10, 0),
+        profile_points=[
+            ElevationProfilePoint(10.1, -10, 0, 1000),
+            ElevationProfilePoint(10.2, -10, 0, 2000),
+            ElevationProfilePoint(10.3, -10, 0, 3000),
+            ElevationProfilePoint(10.4, -10, 0, 4000),
+            ElevationProfilePoint(10.5, -10, 0, 5000),
+            ElevationProfilePoint(10.6, -10, 0, 6000),
+            ElevationProfilePoint(10.7, -10, 0, 7000),
         ]
     )
-    heights = [h for _, _, h in adjusted]
+    heights = [p.elevation for p in adjusted]
     assert heights[0] == heights[-1]
     assert heights[1] == heights[-2]
     assert heights[2] == heights[-3]
@@ -28,16 +28,16 @@ def test_apply_curvature_simple_odd():
 
 def test_apply_curvature_simple_even():
     adjusted = apply_curvature(
-        heights=[
-            (10.1, -10, 0),
-            (10.2, -10, 0),
-            (10.3, -10, 0),
-            (10.5, -10, 0),
-            (10.6, -10, 0),
-            (10.7, -10, 0),
+        profile_points=[
+            ElevationProfilePoint(10.1, -10, 0, 1000),
+            ElevationProfilePoint(10.2, -10, 0, 2000),
+            ElevationProfilePoint(10.3, -10, 0, 3000),
+            ElevationProfilePoint(10.5, -10, 0, 5000),
+            ElevationProfilePoint(10.6, -10, 0, 6000),
+            ElevationProfilePoint(10.7, -10, 0, 7000),
         ]
     )
-    heights = [h for _, _, h in adjusted]
+    heights = [p.elevation for p in adjusted]
     assert heights[0] == heights[-1]
     assert heights[1] == heights[-2]
     assert heights[2] == heights[-3]
