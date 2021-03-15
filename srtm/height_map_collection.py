@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict, Type, List, Generator, Tuple
 
 from srtm.base_coordinates import RasterBaseCoordinates
+from srtm.exceptions import NoHeightMapDataException
 from srtm.utilities import (
     points_on_line,
     SRTM3_DIR,
@@ -60,7 +61,7 @@ class HeightMapCollection:
         try:
             return self.height_maps[base]
         except KeyError:
-            raise Exception(
+            raise NoHeightMapDataException(
                 f"Height map for {base} not found. Have you called "
                 f"build_file_index() on your heightmap collection?"
             )

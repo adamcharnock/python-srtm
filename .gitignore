@@ -6,3 +6,4 @@
 .env
 /dist
 *.cprof
+.envrc

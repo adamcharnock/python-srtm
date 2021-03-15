@@ -1,0 +1,6 @@
+
+
+class NoHeightMapDataException(Exception):
+    pass
+
+
