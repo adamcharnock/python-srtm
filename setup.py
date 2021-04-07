@@ -24,7 +24,7 @@ setup(
     long_description=readme,
     name="python-srtm",
     version="0.3.0",
-    python_requires="==3.*,>=3.8.0",
+    python_requires="==3.*,>=3.6.0",
     project_urls={"repository": "https://github.com/adamcharnock/python-srtm"},
     author="Adam Charnock",
     author_email="adam@adamcharnock.com",
