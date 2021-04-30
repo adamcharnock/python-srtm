@@ -26,8 +26,6 @@ class HeightMapCollection:
 
     def __init__(self, auto_build_index=True, hgt_dir: Path=None):
         self.height_maps = {}
-        if auto_build_index:
-            self.build_file_index()
 
         if hgt_dir is not None:
             self.hgt_dir = hgt_dir
@@ -38,7 +36,10 @@ class HeightMapCollection:
 
         assert (
             self.hgt_dir
-        ), "No HGT direction set. Do you need to set the SRTM1_DIR or SRTM3_DIR environment variables?"
+        ), "No HGT directory set. Do you need to set the SRTM1_DIR or SRTM3_DIR environment variables?"
+
+        if auto_build_index:
+            self.build_file_index()
 
     def build_file_index(self):
         """Load an index of all available files
@@ -62,8 +63,10 @@ class HeightMapCollection:
             return self.height_maps[base]
         except KeyError:
             raise NoHeightMapDataException(
-                f"Height map for {base} not found. Have you called "
-                f"build_file_index() on your heightmap collection?"
+                f"Height map for {base} not found. Either your the SRTM directory "
+                f"'{self.hgt_dir}' is missing files, or you have set auto_build_index=False "
+                f"and therefore need to manually call build_file_index(). It is probably "
+                f"the former."
             )
 
     def get_altitude(self, latitude: float, longitude: float) -> int:
