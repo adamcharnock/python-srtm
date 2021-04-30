@@ -60,18 +60,17 @@ For internal reference:
 # Run the tests
 pytest
 
+export VERSION="VERSION HERE"
+
+# Version bump
+poetry version $VERSION
+
 # Update the setup.py
 dephell convert
 black setup.py
 
 # Ensure poetry.lock is up to date
 poetry lock
-
-export VERSION="VERSION HERE"
-
-# Version bump
-poetry version $VERSION
-
 
 # Commit
 git add .
