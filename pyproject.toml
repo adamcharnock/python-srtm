@@ -17,7 +17,7 @@ python = "^3.8"
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
 dephell = "^0.8.2"
-black = "^19.10b0"
+black = "^24.3"
 
 [tool.dephell.main]
 from = {format = "poetry", path = "pyproject.toml"}
