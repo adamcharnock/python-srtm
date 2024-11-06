@@ -57,7 +57,7 @@ class HeightMap:
         expected_bytes = self.expected_values * 2
         assert len(self.raster) == expected_bytes, (
             f"Unexpected number of bytes found in {self.path}. "
-            f"Expected {expected_bytes}, found {len(self.raster)}"
+            f"Expected {expected_bytes:,}, found {len(self.raster):,}"
         )
 
     def get_altitude_for_pixel(self, x, y) -> int:
@@ -73,7 +73,7 @@ class HeightMap:
 
         byte_number = pixel_number * 2
         return int.from_bytes(
-            self.raster[byte_number : byte_number + 2], byteorder="big"
+            self.raster[byte_number : byte_number + 2], byteorder="big", signed=True
         )
 
     def get_altitude_for_latitude_and_longitude(
