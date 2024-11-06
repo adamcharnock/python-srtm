@@ -65,10 +65,6 @@ export VERSION="VERSION HERE"
 # Version bump
 poetry version $VERSION
 
-# Update the setup.py
-dephell convert
-black setup.py
-
 # Ensure poetry.lock is up to date
 poetry lock
 
