@@ -46,20 +46,23 @@ def points_on_line(x1: int, y1: int, x2: int, y2: int) -> List[Tuple[int, int]]:
 
 def get_srtm1_file_path(hgt_name: str):
     paths = SRTM1_DIR.glob(f"**/{hgt_name}.*")
+    searched = list(map(str, paths))
     assert (
         paths
-    ), f"Path for HGT name {hgt_name} could not be found in {SRTM1_DIR}. Perhaps there is no file for those coordinates?"
+    ), f"Path for HGT name {hgt_name} could not be found in {SRTM1_DIR}. Perhaps there is no file for those coordinates? Searched: {', '.join(searched)}"
     return paths[0]
 
 
 def get_srtm3_file_path(hgt_name: str):
+    searched = []
     for sub_dir in _HGT_SUBDIRS:
         hgt_path = SRTM3_DIR / sub_dir / f"{hgt_name}.hgt.zip"
+        searched.append(str(hgt_path))
         if hgt_path.exists():
             return hgt_path
     assert (
         False
-    ), f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates?"
+    ), f"Path for HGT name {hgt_name} could not be found. Perhaps there is no file for those coordinates? Searched: {', '.join(searched)}"
 
 
 SRTM1_DIR = Path(os.environ.get("SRTM1_DIR", ""))
