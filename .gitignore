@@ -7,3 +7,4 @@
 /dist
 *.cprof
 .envrc
+/pip-wheel-metadata/
