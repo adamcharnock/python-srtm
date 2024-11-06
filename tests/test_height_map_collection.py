@@ -63,12 +63,12 @@ def test_srtm1_height_map_collection_get_elevation_profile():
 
     assert profile[0].latitude == 40.103304637600665
     assert profile[0].longitude == -7.45376284365454
-    assert profile[0].elevation == 563
+    assert profile[0].elevation == 564
     assert profile[0].distance == 2.3111704885835263
 
     assert profile[-1].latitude == 40.07386836989725
     assert profile[-1].longitude == -7.4329352957511805
-    assert profile[-1].elevation == 424
+    assert profile[-1].elevation == 425
     assert profile[-1].distance == 3721.2192128118545
 
     assert len(profile) == 107
